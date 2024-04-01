@@ -1,0 +1,17 @@
+{{- $architecture := or .architecture "arm64" -}}
+{{- $flavor := or .flavor "phone" -}}
+
+architecture: {{ $architecture }}
+
+actions:
+  - action: apt
+    recommends: true
+    description: Install Phosh packages
+    packages:
+      - phosh-pim
+      - phosh-full
+
+  - action: run
+    description: Disable getty in the Phosh environment
+    chroot: true
+    command: systemctl disable getty@.service
