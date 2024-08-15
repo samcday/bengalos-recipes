@@ -8,8 +8,14 @@ actions:
     recommends: true
     description: Install Phosh packages
     packages:
+      - phosh-osk-stub
       - phosh-pim
       - phosh-full
+
+  - action: run
+    description: Remove squeekboard
+    chroot: true
+    command: apt -y remove --purge squeekboard
 
   - action: apt
     recommends: true
