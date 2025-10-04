@@ -43,7 +43,7 @@ mkosi -C build vm
 To build the image, you need to have `debos` and `bmaptool`. On a Debian-based
 system, install these dependencies by typing the following command in a terminal:
 
-```
+``` sh
 sudo apt install debos bmap-tools xz-utils zerofree
 ```
 
@@ -98,7 +98,7 @@ virt-install --connect qemu:///session --boot loader=/usr/share/OVMF/OVMF_CODE_4
 You may also want to convert the raw image to qcow2 format
 and resize it like this:
 
-```
+```sh
 qemu-img convert -f raw -O qcow2 <raw_image.img> <qcow_image.qcow2>
 qemu-img resize -f qcow2 <qcow_image.qcow2> +20G
 ```
