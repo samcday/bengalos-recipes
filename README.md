@@ -62,17 +62,7 @@ following required packages:
 - `qemu-user-static`
 - `binfmt-support`
 
-Then simply browse to the `phosh-os-recipes` folder and execute `./build.sh`.
-
-You can use `./build.sh -d` to use the docker version of `debos`.
-
-### QEMU image
-
-#### Building
-
-You can build a QEMU x86_64 image by adding the `-t amd64` flag to `build.sh`
-
-The resulting files are raw images.
+Then simply browse to the `phosh-recipes` folder and execute `make amd64`.
 
 ## Running
 
