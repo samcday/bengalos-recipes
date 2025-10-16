@@ -34,10 +34,9 @@ build:mkosi:nightly:amd64:
   stage: build
   tags: ["phosh-images"]
   variables:
+    ARCH: amd64
   script:
-    - rm -rf build/
-    - python3 configure.py build --password 1234
-    - XDG_CACHE_HOME=~/.cache mkosi -C build -i
+    - XDG_CACHE_HOME=~/.cache make clean bengalos-${ARCH}
     - tar -czvf BengalOS-amd64.img.gz build/image.raw
     - |
       if [ -n "${PHOSH_IMAGE_HOST}" ] && \
