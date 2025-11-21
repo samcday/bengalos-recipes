@@ -1,5 +1,9 @@
 #!/bin/bash
 
+set -e
+
+plymouth-set-default-theme phosh
+
 useradd \
     --create-home \
     --user-group "{USERNAME}" \
