@@ -80,7 +80,6 @@ def main():
     path = copy_dir(src, dst)
     configure_dir(path, options)
 
-
     (args.build_directory / "mkosi.cache").mkdir()
 
 
