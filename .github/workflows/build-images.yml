@@ -1,0 +1,44 @@
+name: Build Images
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-amd64-development:
+    name: Build amd64 development image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build image in Debian forky
+        run: |
+          docker run --rm --privileged \
+            --volume "$PWD:/work" \
+            --workdir /work \
+            debian:forky \
+            bash -euxo pipefail -c '
+              apt-get update
+              apt-get install -y ca-certificates kmod make mkosi xz-utils
+              modprobe loop || true
+              XDG_CACHE_HOME=/work/.cache make clean bengalos-amd64-development
+              xz -T0 -zk build-amd64-development/BengalOS-amd64_*.raw
+            '
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bengalos-amd64-development
+          path: build-amd64-development/BengalOS-amd64_*.raw.xz
+          if-no-files-found: error
