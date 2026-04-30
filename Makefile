@@ -27,7 +27,7 @@ build-sdm845-development/.done:
 	./configure.py build-sdm845-development/
 	mkosi -C build-sdm845-development -i \
 		--hostname phosh \
-		--profile image-development,device-sdm845,zram,phosh
+		--profile image-development,device-sdm845,droid-juicer-local,zram,phosh
 	touch build-sdm845-development/.done
 
 bengalos-amd64-immutable: build-amd64-immutable/.done
