@@ -1,6 +1,12 @@
 name: Publish Existing SDM845 Channel
 
 on:
+  push:
+    branches:
+      - bengal-bunny
+    paths:
+      - .github/scripts/publish-sdm845-channel.sh
+      - .github/workflows/publish-existing-sdm845-channel.yml
   workflow_dispatch:
     inputs:
       run_id:
@@ -42,9 +48,9 @@ jobs:
       - name: Download existing image artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.artifact_name }}
+          name: ${{ inputs.artifact_name || 'bengalos-sdm845-development' }}
           path: build-sdm845-development
-          run-id: ${{ inputs.run_id }}
+          run-id: ${{ inputs.run_id || '25155607008' }}
           github-token: ${{ github.token }}
 
       - name: Inspect downloaded artifact
@@ -53,7 +59,7 @@ jobs:
       - name: Install fastboop CLI
         env:
           DEFAULT_FASTBOOP_GIT_REV: ${{ vars.FASTBOOP_GIT_REV }}
-          FASTBOOP_GIT_REV: ${{ inputs.fastboop_git_rev }}
+          FASTBOOP_GIT_REV: ${{ inputs.fastboop_git_rev || '' }}
         run: |
           set -euo pipefail
           rustup toolchain install 1.88.0 --profile minimal
@@ -75,7 +81,7 @@ jobs:
           BUNNY_STORAGE_ACCESS_KEY: ${{ secrets.BUNNY_STORAGE_ACCESS_KEY }}
           BUNNY_STORAGE_HOST: ${{ vars.BUNNY_STORAGE_HOST }}
           BUNNY_STORAGE_ZONE: ${{ vars.BUNNY_STORAGE_ZONE }}
-          SKIP_CDN_VERIFY: ${{ inputs.skip_cdn_verify }}
+          SKIP_CDN_VERIFY: ${{ inputs.skip_cdn_verify || 'false' }}
         run: |
           set -euo pipefail
           if [ "${SKIP_CDN_VERIFY}" = true ]; then
