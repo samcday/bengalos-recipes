@@ -7,4 +7,5 @@
 build/
 build-amd64-development/
 build-amd64-immutable/
+build-sdm845-development/
 overlays/ssh/authorized_keys

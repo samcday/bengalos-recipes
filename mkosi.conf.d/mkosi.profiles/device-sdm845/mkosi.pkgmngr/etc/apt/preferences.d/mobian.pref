@@ -1,0 +1,3 @@
+Package: *
+Pin: release o=Mobian,n=forky
+Pin-Priority: 100

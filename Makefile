@@ -21,6 +21,15 @@ bengalos-amd64-development-run: build-amd64-development/.done
 		--profile image-development,device-amd64,zram,phosh \
 		vm
 
+bengalos-sdm845-development: build-sdm845-development/.done
+
+build-sdm845-development/.done:
+	./configure.py build-sdm845-development/
+	mkosi -C build-sdm845-development -i \
+		--hostname phosh \
+		--profile image-development,device-sdm845,zram,phosh
+	touch build-sdm845-development/.done
+
 bengalos-amd64-immutable: build-amd64-immutable/.done
 
 build-amd64-immutable/.done:
@@ -52,6 +61,7 @@ lint: pylint
 clean:
 	rm -rf build-amd64-development/
 	rm -rf build-amd64-immutable/
+	rm -rf build-sdm845-development/
 
 upload:
 	xz -zk build-${ARCH}-${VARIANT}/BengalOS-${ARCH}_0.0.20??????.?.raw
