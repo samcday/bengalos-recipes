@@ -28,12 +28,14 @@ jobs:
             build_dir: build-amd64-development
             output_id: BengalOS-amd64
             artifact: bengalos-amd64-development
+            publish_channel: false
           - image: sdm845-development
             runner: ubuntu-24.04-arm
             target: bengalos-sdm845-development
             build_dir: build-sdm845-development
             output_id: BengalOS-sdm845
             artifact: bengalos-sdm845-development
+            publish_channel: true
 
     steps:
       - name: Check out repository
@@ -59,3 +61,28 @@ jobs:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.build_dir }}/${{ matrix.output_id }}_*.raw.xz
           if-no-files-found: error
+
+      - name: Install fastboop CLI
+        if: ${{ matrix.publish_channel && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') }}
+        env:
+          FASTBOOP_GIT_REV: ${{ vars.FASTBOOP_GIT_REV }}
+        run: |
+          set -euo pipefail
+          rustup toolchain install 1.88.0 --profile minimal
+          if [ -n "${FASTBOOP_GIT_REV}" ]; then
+            cargo +1.88.0 install --locked --git https://github.com/samcday/fastboop --rev "${FASTBOOP_GIT_REV}" fastboop-cli
+          else
+            cargo +1.88.0 install --locked --git https://github.com/samcday/fastboop --branch main fastboop-cli
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Publish fastboop channel to Bunny
+        if: ${{ matrix.publish_channel && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') }}
+        env:
+          BUNNY_API_KEY: ${{ secrets.BUNNY_API_KEY }}
+          BUNNY_CDN_BASE_URL: ${{ vars.BUNNY_CDN_BASE_URL }}
+          BUNNY_SKIP_CDN_VERIFY: ${{ vars.BUNNY_SKIP_CDN_VERIFY }}
+          BUNNY_STORAGE_ACCESS_KEY: ${{ secrets.BUNNY_STORAGE_ACCESS_KEY }}
+          BUNNY_STORAGE_HOST: ${{ vars.BUNNY_STORAGE_HOST }}
+          BUNNY_STORAGE_ZONE: ${{ vars.BUNNY_STORAGE_ZONE }}
+        run: bash .github/scripts/publish-sdm845-channel.sh "${{ matrix.build_dir }}" "${{ matrix.output_id }}"
