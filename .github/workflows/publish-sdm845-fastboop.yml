@@ -1,0 +1,85 @@
+name: Publish SDM845 Fastboop Channel
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful Build Images run ID containing the sdm845 artifact
+        required: true
+        type: string
+      artifact_name:
+        description: Artifact to publish
+        required: true
+        default: bengalos-sdm845-development
+        type: string
+      output_id:
+        description: BengalOS image output ID
+        required: true
+        default: BengalOS-sdm845
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish fastboop channel
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify source run succeeded
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          set -euo pipefail
+          state="$(gh run view "${RUN_ID}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --json status,conclusion \
+            --jq '[.status, (.conclusion // "")] | join(" ")')"
+          if [[ "${state}" != "completed success" ]]; then
+            printf 'run %s must be completed successfully, got: %s\n' "${RUN_ID}" "${state}" >&2
+            exit 1
+          fi
+
+      - name: Download sdm845 image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: channel-input
+
+      - name: Install fastboop CLI
+        env:
+          FASTBOOP_GIT_REV: ${{ vars.FASTBOOP_GIT_REV }}
+        run: |
+          set -euo pipefail
+          rustup toolchain install 1.88.0 --profile minimal
+          printf 'not used by channel publishing\n' > "${RUNNER_TEMP}/fastboop-stage0-placeholder"
+          export FASTBOOP_STAGE0_EMBED_PATH="${RUNNER_TEMP}/fastboop-stage0-placeholder"
+          if [ -n "${FASTBOOP_GIT_REV}" ]; then
+            cargo +1.88.0 install --locked --git https://github.com/samcday/fastboop --rev "${FASTBOOP_GIT_REV}" fastboop-cli
+          else
+            cargo +1.88.0 install --locked --git https://github.com/samcday/fastboop --branch main fastboop-cli
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Publish fastboop channel to Bunny
+        env:
+          BUNNY_API_KEY: ${{ secrets.BUNNY_API_KEY }}
+          BUNNY_CDN_BASE_URL: ${{ vars.BUNNY_CDN_BASE_URL }}
+          BUNNY_SKIP_CDN_VERIFY: ${{ vars.BUNNY_SKIP_CDN_VERIFY }}
+          BUNNY_STORAGE_ACCESS_KEY: ${{ secrets.BUNNY_STORAGE_ACCESS_KEY }}
+          BUNNY_STORAGE_HOST: ${{ vars.BUNNY_STORAGE_HOST }}
+          BUNNY_STORAGE_ZONE: ${{ vars.BUNNY_STORAGE_ZONE }}
+        run: bash .github/scripts/publish-sdm845-channel.sh channel-input "${{ inputs.output_id }}"

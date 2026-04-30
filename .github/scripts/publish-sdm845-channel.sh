@@ -146,7 +146,7 @@ id: bengalos-sdm845-development
 display_name: BengalOS SDM845 development
 
 stage0:
-  kernel_modules:
+  extra_modules:
     - simpledrm
     - qcom-rpmh-regulator
     - fixed
