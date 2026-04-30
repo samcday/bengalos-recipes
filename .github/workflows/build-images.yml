@@ -13,10 +13,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-amd64-development:
-    name: Build amd64 development image
-    runs-on: ubuntu-24.04
+  build-development:
+    name: Build ${{ matrix.image }} image
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 360
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: amd64-development
+            runner: ubuntu-24.04
+            target: bengalos-amd64-development
+            build_dir: build-amd64-development
+            output_id: BengalOS-amd64
+            artifact: bengalos-amd64-development
+          - image: sdm845-development
+            runner: ubuntu-24.04-arm
+            target: bengalos-sdm845-development
+            build_dir: build-sdm845-development
+            output_id: BengalOS-sdm845
+            artifact: bengalos-sdm845-development
 
     steps:
       - name: Check out repository
@@ -32,13 +49,13 @@ jobs:
               apt-get update
               apt-get install -y ca-certificates kmod make mkosi xz-utils
               modprobe loop || true
-              XDG_CACHE_HOME=/work/.cache make clean bengalos-amd64-development
-              xz -T0 -zk build-amd64-development/BengalOS-amd64_*.raw
+              XDG_CACHE_HOME=/work/.cache make clean ${{ matrix.target }}
+              xz -T0 -zk ${{ matrix.build_dir }}/${{ matrix.output_id }}_*.raw
             '
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bengalos-amd64-development
-          path: build-amd64-development/BengalOS-amd64_*.raw.xz
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.build_dir }}/${{ matrix.output_id }}_*.raw.xz
           if-no-files-found: error
