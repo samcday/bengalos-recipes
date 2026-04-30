@@ -69,6 +69,8 @@ jobs:
         run: |
           set -euo pipefail
           rustup toolchain install 1.88.0 --profile minimal
+          printf 'not used by channel publishing\n' > "${RUNNER_TEMP}/fastboop-stage0-placeholder"
+          export FASTBOOP_STAGE0_EMBED_PATH="${RUNNER_TEMP}/fastboop-stage0-placeholder"
           if [ -n "${FASTBOOP_GIT_REV}" ]; then
             cargo +1.88.0 install --locked --git https://github.com/samcday/fastboop --rev "${FASTBOOP_GIT_REV}" fastboop-cli
           else
