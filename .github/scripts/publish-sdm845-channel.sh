@@ -117,6 +117,15 @@ if [[ ${#images[@]} -ne 1 ]]; then
 fi
 
 image_path="${images[0]}"
+size_bytes="$(stat -c '%s' "${image_path}")"
+sha256_digest="$(sha256sum "${image_path}" | cut -d ' ' -f1)"
+sha512_digest="$(sha512sum "${image_path}" | cut -d ' ' -f1)"
+
+work_parent="${RUNNER_TEMP:-/tmp}"
+work_dir="$(mktemp -d "${work_parent}/bengalos-fastboop-channel.XXXXXX")"
+hashed_image_path="${work_dir}/${sha256_digest}.xz"
+mv -- "${image_path}" "${hashed_image_path}"
+image_path="${hashed_image_path}"
 image_name="$(basename -- "${image_path}")"
 
 storage_host="${BUNNY_STORAGE_HOST#http://}"
@@ -129,11 +138,6 @@ rootfs_object_path="images/${image_name}"
 rootfs_url="${cdn_base}/${rootfs_object_path}"
 channel_url="${cdn_base}/channel"
 
-size_bytes="$(stat -c '%s' "${image_path}")"
-sha512_digest="$(sha512sum "${image_path}" | cut -d ' ' -f1)"
-
-work_parent="${RUNNER_TEMP:-/tmp}"
-work_dir="$(mktemp -d "${work_parent}/bengalos-fastboop-channel.XXXXXX")"
 manifest="${work_dir}/bootprofile.yaml"
 channel_unindexed="${work_dir}/channel.unindexed"
 channel_indexed="${work_dir}/channel"
