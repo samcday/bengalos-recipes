@@ -101,9 +101,17 @@ for cmd in basename curl cut fastboop grep mktemp sed sha256sum sha512sum stat t
 done
 
 shopt -s nullglob
-images=("${build_dir}/${output_id}"_*.raw.xz)
+images=()
+for candidate in "${build_dir}/${output_id}"_*.raw.xz; do
+  candidate_name="$(basename -- "${candidate}")"
+  if [[ "${candidate_name}" == "${output_id}_"*.raw.xz \
+    && "${candidate_name}" != *.esp.raw.xz \
+    && "${candidate_name}" != *.root-*.raw.xz ]]; then
+    images+=("${candidate}")
+  fi
+done
 if [[ ${#images[@]} -ne 1 ]]; then
-  printf 'expected exactly one image matching %s/%s_*.raw.xz, found %s\n' \
+  printf 'expected exactly one full disk image matching %s/%s_*.raw.xz, found %s\n' \
     "${build_dir}" "${output_id}" "${#images[@]}" >&2
   exit 1
 fi
