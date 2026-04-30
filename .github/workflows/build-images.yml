@@ -47,7 +47,7 @@ jobs:
             debian:forky \
             bash -euxo pipefail -c '
               apt-get update
-              apt-get install -y ca-certificates kmod make mkosi xz-utils
+              apt-get install -y ca-certificates git kmod make mkosi xz-utils
               modprobe loop || true
               XDG_CACHE_HOME=/work/.cache make clean ${{ matrix.target }}
               xz -T0 -zk ${{ matrix.build_dir }}/${{ matrix.output_id }}_*.raw
